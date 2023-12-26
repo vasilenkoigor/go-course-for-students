@@ -1,28 +1,54 @@
 package tagcloud
 
+import (
+	"sort"
+)
+
 // TagCloud aggregates statistics about used tags
 type TagCloud struct {
-	// TODO: add fields if necessary
+	// Private
+	storage []TagStat
 }
 
 // TagStat represents statistics regarding single tag
 type TagStat struct {
+	// Public
 	Tag             string
 	OccurrenceCount int
 }
 
 // New should create a valid TagCloud instance
-// TODO: You decide whether this function should return a pointer or a value
 func New() TagCloud {
-	// TODO: Implement this
-	return TagCloud{}
+	return TagCloud{storage: make([]TagStat, 0)}
 }
 
 // AddTag should add a tag to the cloud if it wasn't present and increase tag occurrence count
 // thread-safety is not needed
-// TODO: You decide whether receiver should be a pointer or a value
-func (TagCloud) AddTag(tag string) {
-	// TODO: Implement this
+func (cloud *TagCloud) AddTag(tag string) {
+	var tagStat TagStat
+	var tagStatIndex int
+	var hasValue bool
+
+	for index, stat := range cloud.storage {
+		if stat.Tag == tag {
+			tagStat = stat
+			tagStatIndex = index
+			hasValue = true
+			break
+		}
+	}
+
+	if hasValue {
+		tagStat = TagStat{Tag: tag, OccurrenceCount: tagStat.OccurrenceCount + 1}
+		cloud.storage[tagStatIndex] = tagStat
+	} else {
+		tagStat = TagStat{Tag: tag, OccurrenceCount: 1}
+		cloud.storage = append(cloud.storage, tagStat)
+	}
+
+	sort.Slice(cloud.storage, func(i, j int) bool {
+		return cloud.storage[i].OccurrenceCount > cloud.storage[j].OccurrenceCount
+	})
 }
 
 // TopN should return top N most frequent tags ordered in descending order by occurrence count
@@ -30,8 +56,10 @@ func (TagCloud) AddTag(tag string) {
 // if n is greater that TagCloud size then all elements should be returned
 // thread-safety is not needed
 // there are no restrictions on time complexity
-// TODO: You decide whether receiver should be a pointer or a value
-func (TagCloud) TopN(n int) []TagStat {
-	// TODO: Implement this
-	return nil
+func (cloud *TagCloud) TopN(n int) []TagStat {
+	if n > len(cloud.storage) {
+		return cloud.storage
+	} else {
+		return cloud.storage[0:n]
+	}
 }
