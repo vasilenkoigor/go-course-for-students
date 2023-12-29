@@ -1,38 +1,22 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"lecture03_homework/file_copier"
 	"os"
 )
 
-type Options struct {
-	From string
-	To   string
-	// todo: add required flags
-}
-
-func ParseFlags() (*Options, error) {
-	var opts Options
-
-	flag.StringVar(&opts.From, "from", "", "file to read. by default - stdin")
-	flag.StringVar(&opts.To, "to", "", "file to write. by default - stdout")
-
-	// todo: parse and validate all flags
-
-	flag.Parse()
-
-	return &opts, nil
-}
+var flagsParser file_copier.FlagsParser = file_copier.UnixCmdFlagsParser{}
+var fileCopier file_copier.FileCopier = file_copier.UnixDDCopier{}
 
 func main() {
-	opts, err := ParseFlags()
+	opts, err := flagsParser.Parse()
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "can not parse flags:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(opts)
-
-	// todo: implement the functional requirements described in read.me
+	if err := fileCopier.Copy(*opts); err != nil {
+		fmt.Println(err)
+	}
 }
